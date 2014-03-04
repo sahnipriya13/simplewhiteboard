@@ -1,0 +1,91 @@
+<html>
+	<head>
+			<script src="/socket.io/socket.io.js"></script>
+			<script type="text/javascript"></script>
+			<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>		
+	</head>
+	<body onload='init()'>
+				<button onclick="clear1()" >Clear My Whiteboard</button>
+				<canvas id="mycanvas"></canvas>			
+		</div>
+	</body>
+	<script>
+			var canvas, ctx;
+			var id;
+			var clients = {};
+			var r, g, b, color;
+			var drawing;
+			var prev = {};
+			
+			function init()
+			{
+				canvas = document.getElementById("mycanvas");
+				ctx = canvas.getContext("2d");	
+				ctx.canvas.width  = window.innerWidth;
+				ctx.canvas.height = window.innerHeight;				
+				id = Math.round(Math.random());
+				r = Math.floor(Math.random() * 255) + 70;
+				g = Math.floor(Math.random() * 255) + 70;
+				b = Math.floor(Math.random() * 255) + 70;
+				color = 'rgb(' + r + ',' + g + ',' + b + ')';
+				drawing = false;
+				ctx.lineWidth = 5;
+			}
+			function clear1()
+			{	
+				ctx.clearRect ( 0 , 0 , ctx.canvas.width , ctx.canvas.height );
+			}
+	
+			//socket part
+			var socket = io.connect("http://whiteboard.js.nodejitsu.com");
+			 socket.on('moving', function(data) 
+			 {
+					
+					 if(data.drawing && clients[data.id])
+					{
+						ctx.strokeStyle = data.color;
+						drawLine(clients[data.id].x, clients[data.id].y, data.x, data.y);
+	
+					}
+					clients[data.id] = data;
+			});
+			
+			 addEventListener('mousedown',function(e)
+			 {
+					e.preventDefault();
+					drawing = true;
+					prev.x = e.pageX;
+					prev.y = e.pageY;
+			});
+			addEventListener('mouseup', function(e)
+			{
+					 drawing = false;
+			});
+			
+			addEventListener('mousemove',function(e)
+			{
+					socket.emit('mousemove',
+					{
+							'x': e.pageX,
+							'y': e.pageY,
+							'drawing': drawing,
+							'color': color,
+							'id': id
+					});
+					if(drawing)
+					{
+							ctx.strokeStyle = color;
+							drawLine(prev.x, prev.y, e.pageX, e.pageY);
+							prev.x = e.pageX;
+							prev.y = e.pageY;
+					}
+			});
+			function drawLine(fromx, fromy, tox, toy)
+			{
+					ctx.beginPath();
+					ctx.moveTo(fromx, fromy);
+					ctx.lineTo(tox, toy);
+					ctx.stroke();
+			}
+	</script>
+</html>

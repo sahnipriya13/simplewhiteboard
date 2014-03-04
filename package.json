@@ -1,0 +1,14 @@
+{
+  "name": "whiteBoard.js",
+  "subdomain": "whiteBoard.js",
+  "scripts": {
+    "start": "whiteBoard.js"
+  },
+  "version": "0.0.0-4",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "dependencies": {
+    "socket.io": "*"
+  }
+}
